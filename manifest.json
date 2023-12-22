@@ -1,0 +1,12 @@
+{
+  "name": "LiveDraw",
+  "id": "webpack-react-sample",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "dist/ui.html",
+  "editorType": ["figma", "figjam"],
+  "networkAccess": {
+    "allowedDomains": ["*"],
+    "reasoning": "We need to access the internet for the sample to work."
+  }
+}
