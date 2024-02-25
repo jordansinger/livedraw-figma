@@ -26,7 +26,7 @@
     "webpack-cli": "^5.1.1"
   },
   "dependencies": {
-    "@fal-ai/serverless-client": "^0.7.4",
+    "@fal-ai/serverless-client": "^0.8.5",
     "os-browserify": "^0.3.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
