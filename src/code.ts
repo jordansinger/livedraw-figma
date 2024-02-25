@@ -1,15 +1,38 @@
-let section, preview = null;
+let preview,
+  promptLayer = null;
 
-let setupCanvas = () => {
-  preview = figma.createFrame();
+var promptText = "a sunset at a tropical beach with palm trees";
+
+let setupCanvas = async () => {
+  let autolayout = figma.createFrame();
+  autolayout.x = figma.viewport.center.x - 256;
+  autolayout.y = figma.viewport.center.y - 256;
+  autolayout.name = "🖼️ Image";
+  autolayout.fills = [];
+
+  await figma.loadFontAsync({ family: "Inter", style: "Regular" });
+  await figma.loadFontAsync({ family: "Inter", style: "Medium" });
+  promptLayer = figma.createText();
+  promptLayer.y -= 100;
+  promptLayer.characters = promptText;
+  promptLayer.fontSize = 24;
+  promptLayer.textAlignHorizontal = "CENTER";
+  preview = figma.createRectangle();
   preview.name = "▶️ Preview";
   preview.resize(512, 512);
+  preview.fills = [{ type: "SOLID", color: { r: 0, g: 0, b: 0 } }];
   preview.locked = true;
 
-  section = figma.createSection();
-  section.name = "a sunset at a tropical beach with palm trees";
-  section.fills = []
-  section.resizeWithoutConstraints(512, 512);
+  autolayout.appendChild(preview);
+  autolayout.appendChild(promptLayer);
+  autolayout.layoutMode = "VERTICAL";
+  autolayout.primaryAxisSizingMode = "AUTO";
+  autolayout.counterAxisSizingMode = "AUTO";
+  autolayout.itemSpacing = 20;
+
+  promptLayer.layoutSizingHorizontal = "FILL";
+
+  figma.currentPage.selection = [promptLayer];
 };
 
 setupCanvas();
@@ -17,66 +40,37 @@ setupCanvas();
 figma.showUI(__html__, { visible: false });
 
 let sendMessages = async () => {
-  // convert drawing to base 64
-
-  let duplicate = section.clone()
-  duplicate.x = -999
-  duplicate.y = -999
-  let prvw = duplicate.findOne(n => n.type === "FRAME")
-  if(prvw) {
-    prvw.visible = false
-  }
-
-  const bytes = await duplicate.exportAsync({
-    format: "JPG",
-    constraint: { type: "SCALE", value: 1 },
-  });
-
-  duplicate.remove()
-
-  // convert uint8array to base64
-  let base64 = figma.base64Encode(bytes);
-  base64 = "data:image/jpeg;base64," + base64;
-
+  console.log("sending messages");
+  console.log(promptText);
   figma.ui.postMessage({
     type: "drawingUpdated",
-    drawing: base64,
-    prompt: section.name,
+    prompt: promptText,
   });
 };
 
 sendMessages();
 
-figma.on("documentchange", (event) => {
+figma.on("documentchange", async (event) => {
   for (const change of event.documentChanges) {
-    // check if change id is inside of the drawing node
-    // recursively check the parent.id of the node
+    // check if change id is the text prompt layer id
     let nodeID = change.id;
     let node = figma.getNodeById(nodeID);
-    if (node === null || node.id === preview.id) {
-      return;
-    }
-
-    let parent = node.parent;
-    while (parent) {
-      if (
-        parent.id === section.id ||
-        nodeID === section.id
-      ) {
-        sendMessages();
-        break;
-      }
-      parent = parent.parent;
+    if (node != null && node.id === promptLayer.id) {
+      await figma.loadFontAsync(promptLayer.fontName);
+      promptText = promptLayer.characters;
+      console.log("promptText", promptText);
+      sendMessages();
     }
   }
 });
 
 figma.ui.onmessage = (msg) => {
+  console.log("received message");
   if (msg.type === "renderImage") {
-    let base64 = msg.image.replace("data:image/jpeg;base64,", "");
-    let hash = figma.base64Decode(base64);
-    let image = figma.createImage(hash);
-    preview.backgrounds = [
+    console.log(msg);
+    let image = figma.createImage(msg.image);
+    preview.fills = [
+      { type: "SOLID", color: { r: 0, g: 0, b: 0 } },
       { type: "IMAGE", imageHash: image.hash, scaleMode: "FILL" },
     ];
   }
