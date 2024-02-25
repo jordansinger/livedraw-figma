@@ -3,8 +3,8 @@ import * as React from "react";
 import { useCallback, useEffect, useState } from "react";
 import * as ReactDOM from "react-dom/client";
 import "./ui.css";
-const fal_key_id = "9d295958-3309-43ae-a394-65904d700c43";
-const fal_key_secret = "69934dd88438e81147906e1be1599df5";
+const fal_key_id = "";
+const fal_key_secret = "";
 fal.config({
     credentials: `${fal_key_id}:${fal_key_secret}`,
 });
